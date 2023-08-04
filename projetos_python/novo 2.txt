@@ -1,0 +1,61 @@
+import openpyxl
+import PySimpleGUI as sg
+
+# Resto do código igual...
+
+def main():
+    layout = [
+        # Layout igual...
+    ]
+
+    window = sg.Window('Consulta de Impressoras', layout, resizable=True)
+
+    book = openpyxl.load_workbook('imp_ms.XLSX')
+    all_sheets = book.sheetnames
+
+    while True:
+        event, values = window.read()
+
+        if event == sg.WIN_CLOSED or event == 'Exit':
+            break
+        elif event == 'Search':
+            # Resto do código igual...
+        elif event == 'AddPrinter':
+            # Resto do código igual...
+        elif event == 'ShowLine':
+            layout_show_line = [
+                [sg.Text('Mostrar Linha', font=('Arial', 14))],
+                [sg.Text('Planilha:'), sg.DropDown(all_sheets, key='Sheet')],
+                [sg.Text('Número da Linha:'), sg.InputText('', key='LineNumber')],
+                [sg.Button('Mostrar', key='Show')],
+                [sg.Button('Cancelar', key='Cancel')]
+            ]
+
+            window_show_line = sg.Window('Mostrar Linha', layout_show_line)
+
+            while True:
+                event_show_line, values_show_line = window_show_line.read()
+
+                if event_show_line == sg.WIN_CLOSED or event_show_line == 'Cancel':
+                    break
+                elif event_show_line == 'Show':
+                    selected_sheet_name = values_show_line['Sheet']
+                    try:
+                        line_number = int(values_show_line['LineNumber'])
+                        sheet = book[selected_sheet_name]
+                        row_values = [cell_value_to_str(cell[0]).strip() for cell in sheet.iter_rows(min_row=line_number, max_row=line_number, values_only=True)][0]
+                        window_show_line.close()
+                        sg.popup(f"Linha {line_number} da planilha '{selected_sheet_name}':\n{', '.join(row_values)}")
+                    except ValueError:
+                        sg.popup("Por favor, insira um número de linha válido.")
+                    except IndexError:
+                        sg.popup(f"Linha {line_number} não encontrada na planilha '{selected_sheet_name}'.")
+                    break
+
+            window_show_line.close()
+
+    window.close()
+    book.save('imp_ms.XLSX')
+
+if __name__ == "__main__":
+    main()
